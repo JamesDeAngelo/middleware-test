@@ -1,24 +1,26 @@
 const express = require("express");
-const path = require("path");
 const app = express();
 
-// Middleware to parse JSON requests
+// Middleware: parse JSON
 app.use(express.json());
 
-// Root route (for browser testing)
+// Root route (for quick browser test)
 app.get("/", (req, res) => {
   res.send("✅ Server is alive and working!");
 });
 
-// Webhook route (for your app/automation)
-app.post("/webhook", (req, res) => {
-  console.log("Webhook received:", req.body);
-  res.send("Webhook received!");
-});
+// Telnyx Webhook route
+app.post("/telnyx-webhook", (req, res) => {
+  console.log("📞 Telnyx Webhook Event:", JSON.stringify(req.body, null, 2));
 
-// Example route for serving an HTML file (optional)
-app.get("/page", (req, res) => {
-  res.sendFile(path.join(__dirname, "index.html"));
+  // Always respond quickly so Telnyx knows you got the event
+  res.status(200).send("Webhook received");
+
+  // Example: detect inbound call
+  if (req.body.data && req.body.data.event_type === "call.initiated") {
+    console.log("🚀 Inbound call received!");
+    // later: reply with instructions, route to Voiceflow, etc.
+  }
 });
 
 const PORT = process.env.PORT || 3000;
